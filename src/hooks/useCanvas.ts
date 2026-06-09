@@ -4,7 +4,7 @@ import { useIndexedDB } from "./useIndexedDB";
 
 const CANVAS_SIZE  = 2048;
 const MIN_SCALE    = 0.04;
-const MAX_SCALE    = 5;   // 5x max zoom
+const MAX_SCALE    = 40;  // 40x max zoom — r/place gibi büyük piksel
 
 function hexToRgb(hex: string): [number, number, number] {
   const c = hex.replace("#", "");
