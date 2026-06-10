@@ -4,7 +4,7 @@ import { useIndexedDB } from "./useIndexedDB";
 
 const CANVAS_SIZE  = 1000;
 const MIN_SCALE    = 0.04;
-const MAX_SCALE    = 5;   // 5x max zoom
+const MAX_SCALE    = 40;  // r/place: 40x max zoom
 
 function hexToRgb(hex: string): [number, number, number] {
   const c = hex.replace("#", "");
@@ -21,8 +21,8 @@ function clamp(v: number, lo: number, hi: number) { return Math.min(hi, Math.max
 
 function formatZoom(scale: number): string {
   if (scale >= 10) return `${Math.round(scale)}x`;
-  if (scale >= 1)  return `${scale.toFixed(1)}x`;
-  return `${scale.toFixed(2)}x`;
+  if (scale >= 1)  return `${parseFloat(scale.toFixed(1))}x`;
+  return `${parseFloat(scale.toFixed(2))}x`;
 }
 
 function computeCenterPixel(t: Transform, cw: number, ch: number): PixelCoord {
@@ -118,7 +118,7 @@ export function useCanvas(): UseCanvasReturn {
 
           // ── Pixel grid — fades in at scale >= 2 ──
           if (t.scale >= 2) {
-            const alpha = Math.min(0.25, 0.06 + 0.04 * (t.scale - 2));
+            const alpha = Math.min(0.3, 0.08 + 0.03 * (t.scale - 2));
             ctx.strokeStyle = `rgba(180,180,180,${alpha})`;
             ctx.lineWidth   = 1 / t.scale;
             const x0 = Math.max(0, Math.floor(-t.x / t.scale));
@@ -200,14 +200,14 @@ export function useCanvas(): UseCanvasReturn {
       isLoadedRef.current = true;
       setIsLoaded(true);
 
-      // Initial zoom: fit whole canvas to screen (r/place "Resim 1" standard)
+      // Initial zoom: ~3x centered on canvas center — pixels clearly visible (r/place standard)
       const cw = canvasElRef.current?.offsetWidth  || window.innerWidth;
       const ch = canvasElRef.current?.offsetHeight || window.innerHeight;
-      const scale = clamp(Math.min(cw / CANVAS_SIZE, ch / CANVAS_SIZE), MIN_SCALE, MAX_SCALE);
+      const scale = clamp(3, MIN_SCALE, MAX_SCALE);
       const t: Transform = {
         scale,
-        x: (cw - CANVAS_SIZE * scale) / 2,
-        y: (ch - CANVAS_SIZE * scale) / 2,
+        x: cw / 2 - (CANVAS_SIZE / 2) * scale,
+        y: ch / 2 - (CANVAS_SIZE / 2) * scale,
       };
       applyTransform(t);
 
@@ -238,7 +238,7 @@ export function useCanvas(): UseCanvasReturn {
       const rect   = canvas.getBoundingClientRect();
       const mx     = e.clientX - rect.left;
       const my     = e.clientY - rect.top;
-      const factor = e.deltaY < 0 ? 1.12 : 1 / 1.12;
+      const factor = e.deltaY < 0 ? 1.18 : 1 / 1.18;
       const t      = transformRef.current;
       const ns     = clamp(t.scale * factor, MIN_SCALE, MAX_SCALE);
       const r      = ns / t.scale;
