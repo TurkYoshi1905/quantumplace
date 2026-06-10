@@ -36,7 +36,7 @@ export const translations: Record<Lang, Translations> = {
     "settings.language.desc": "Choose the display language for the interface.",
     "settings.about": "About",
     "settings.about.text":
-      "QuantumPlace is a collaborative pixel art canvas inspired by r/place. Paint one pixel at a time and build something amazing together. Your pixels are saved locally in your browser using IndexedDB.",
+      "QuantumPlace is a pixel art canvas inspired by r/place. Paint one pixel at a time and create something amazing. Your pixels are saved locally in your browser using IndexedDB.",
     "settings.canvas.size": "Canvas Size",
     "settings.max.zoom": "Max Zoom",
     "settings.controls": "Controls",
@@ -63,7 +63,7 @@ export const translations: Record<Lang, Translations> = {
     "settings.language.desc": "Arayüzün görüntüleme dilini seçin.",
     "settings.about": "Hakkında",
     "settings.about.text":
-      "QuantumPlace, r/place'ten ilham alan işbirlikçi bir piksel sanat tuvalidir. Bir seferde bir piksel boyayın ve birlikte harika şeyler yaratın. Pikselleriniz, IndexedDB kullanılarak tarayıcınızda yerel olarak kaydedilir.",
+      "QuantumPlace, r/place'ten ilham alan bir piksel sanat tuvalidir. Bir seferde bir piksel boyayın ve harika şeyler yaratın. Pikselleriniz, IndexedDB kullanılarak tarayıcınızda yerel olarak kaydedilir.",
     "settings.canvas.size": "Tuval Boyutu",
     "settings.max.zoom": "Maks. Yakınlaştırma",
     "settings.controls": "Kontroller",

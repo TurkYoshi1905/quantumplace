@@ -21,10 +21,10 @@ export function InfoModal({ open, onClose }: InfoModalProps) {
 
   const tr = {
     title:       lang === "tr" ? "QuantumPlace Hakkında" : "About QuantumPlace",
-    subtitle:    lang === "tr" ? "İşbirlikçi Piksel Boyama Tuali" : "Collaborative Pixel Canvas",
+    subtitle:    lang === "tr" ? "Kuantum Temalı Piksel Sanat Tuali" : "Quantum Pixel Art Canvas",
     desc:        lang === "tr"
-      ? "QuantumPlace, r/place'ten ilham alınan kuantum temalı işbirlikçi bir piksel sanat oyunudur. 2048×2048 piksellik devasa bir tuval üzerinde, dünya genelindeki oyuncularla birlikte piksel piksel sanat eserleri yaratın."
-      : "QuantumPlace is a quantum-themed collaborative pixel art game inspired by r/place. Create pixel-by-pixel masterpieces with players worldwide on a massive 2048×2048 canvas.",
+      ? "QuantumPlace, r/place'ten ilham alınan kuantum temalı bir piksel sanat oyunudur. 2048×2048 piksellik devasa bir tuval üzerinde piksel piksel sanat eserleri yaratın."
+      : "QuantumPlace is a quantum-themed pixel art game inspired by r/place. Create pixel-by-pixel masterpieces on a massive 2048×2048 canvas.",
     controls:    lang === "tr" ? "Kontroller" : "Controls",
     ctrl_zoom:   lang === "tr" ? "Fare tekerleği ile yakınlaştır / uzaklaştır" : "Mouse wheel to zoom in / out",
     ctrl_pan:    lang === "tr" ? "Sol tıkla sürükleyerek haritayı gez" : "Left-click drag to pan the map",

@@ -116,18 +116,6 @@ export function useCanvas(): UseCanvasReturn {
           // ── Draw pixel art ──
           ctx.drawImage(off, 0, 0);
 
-          // ── Macro-grid: every 128 game-px (visible even at 0.35x zoom) ──
-          // At 0.35x: 128 × 0.35 = 44.8 CSS px between lines → clearly visible
-          // Fades out smoothly as pixel-grid takes over at scale >= 2
-          const CHUNK = 128;
-          const macroAlpha = Math.max(0, Math.min(0.14, 0.14 - (t.scale - 0.3) * 0.07));
-          if (macroAlpha > 0.005) {
-            ctx.strokeStyle = `rgba(100,100,100,${macroAlpha})`;
-            ctx.lineWidth   = 1 / t.scale;
-            for (let x = 0; x <= CANVAS_SIZE; x += CHUNK) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,CANVAS_SIZE); ctx.stroke(); }
-            for (let y = 0; y <= CANVAS_SIZE; y += CHUNK) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(CANVAS_SIZE,y); ctx.stroke(); }
-          }
-
           // ── Pixel grid — fades in at scale >= 2 ──
           if (t.scale >= 2) {
             const alpha = Math.min(0.25, 0.06 + 0.04 * (t.scale - 2));
