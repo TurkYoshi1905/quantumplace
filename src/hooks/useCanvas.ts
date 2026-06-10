@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { PixelCoord, Transform, UseCanvasReturn } from "../types";
 import { useIndexedDB } from "./useIndexedDB";
 
-const CANVAS_SIZE  = 2048;
+const CANVAS_SIZE  = 1000;
 const MIN_SCALE    = 0.04;
 const MAX_SCALE    = 5;   // 5x max zoom
 

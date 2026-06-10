@@ -95,10 +95,16 @@ if [ "$MODE" = "push" ]; then
   cp "$QUANTUM_DIR/github-sync.sh" "$DEPLOY_TMP/github-sync.sh"
   echo "  ✓ github-sync.sh eklendi."
 
-  # README.md / replit.md
+  # README.md
   if [ -f "$WORKSPACE/README.md" ]; then
     cp "$WORKSPACE/README.md" "$DEPLOY_TMP/README.md"
     echo "  ✓ README.md eklendi."
+  fi
+
+  # replit.md
+  if [ -f "$WORKSPACE/replit.md" ]; then
+    cp "$WORKSPACE/replit.md" "$DEPLOY_TMP/replit.md"
+    echo "  ✓ replit.md eklendi."
   fi
 
   echo ""
