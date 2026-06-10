@@ -4,7 +4,7 @@ import { useIndexedDB } from "./useIndexedDB";
 
 const CANVAS_SIZE  = 2048;
 const MIN_SCALE    = 0.04;
-const MAX_SCALE    = 40;  // 40x max zoom — r/place gibi büyük piksel
+const MAX_SCALE    = 5;   // 5x max zoom
 
 function hexToRgb(hex: string): [number, number, number] {
   const c = hex.replace("#", "");
@@ -109,16 +109,28 @@ export function useCanvas(): UseCanvasReturn {
           ctx.translate(t.x, t.y);
           ctx.scale(t.scale, t.scale);
 
-          // ── Canvas white fill (draw before art) ──
+          // ── Canvas white fill ──
           ctx.fillStyle = "#ffffff";
           ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
           // ── Draw pixel art ──
           ctx.drawImage(off, 0, 0);
 
-          // ── Pixel grid — visible at scale >= 2, more opaque as you zoom in ──
+          // ── Macro-grid: every 128 game-px (visible even at 0.35x zoom) ──
+          // At 0.35x: 128 × 0.35 = 44.8 CSS px between lines → clearly visible
+          // Fades out smoothly as pixel-grid takes over at scale >= 2
+          const CHUNK = 128;
+          const macroAlpha = Math.max(0, Math.min(0.14, 0.14 - (t.scale - 0.3) * 0.07));
+          if (macroAlpha > 0.005) {
+            ctx.strokeStyle = `rgba(100,100,100,${macroAlpha})`;
+            ctx.lineWidth   = 1 / t.scale;
+            for (let x = 0; x <= CANVAS_SIZE; x += CHUNK) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,CANVAS_SIZE); ctx.stroke(); }
+            for (let y = 0; y <= CANVAS_SIZE; y += CHUNK) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(CANVAS_SIZE,y); ctx.stroke(); }
+          }
+
+          // ── Pixel grid — fades in at scale >= 2 ──
           if (t.scale >= 2) {
-            const alpha = Math.min(0.25, 0.08 + 0.04 * (t.scale - 2));
+            const alpha = Math.min(0.25, 0.06 + 0.04 * (t.scale - 2));
             ctx.strokeStyle = `rgba(180,180,180,${alpha})`;
             ctx.lineWidth   = 1 / t.scale;
             const x0 = Math.max(0, Math.floor(-t.x / t.scale));
@@ -130,8 +142,8 @@ export function useCanvas(): UseCanvasReturn {
           }
 
           // ── Canvas border ──
-          ctx.strokeStyle = "rgba(0,0,0,0.15)";
-          ctx.lineWidth   = 1 / t.scale;
+          ctx.strokeStyle = "rgba(0,0,0,0.2)";
+          ctx.lineWidth   = 2 / t.scale;
           ctx.strokeRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
           // ── Selected pixel highlight ──
@@ -200,16 +212,14 @@ export function useCanvas(): UseCanvasReturn {
       isLoadedRef.current = true;
       setIsLoaded(true);
 
-      // Initial zoom: 3x so individual pixels are clearly visible (3 CSS px per game px)
-      // At 3x on a 1280×720 screen → shows 427×240 canvas pixels, each pixel = 3 CSS px
+      // Initial zoom: fit whole canvas to screen (r/place "Resim 1" standard)
       const cw = canvasElRef.current?.offsetWidth  || window.innerWidth;
       const ch = canvasElRef.current?.offsetHeight || window.innerHeight;
-      const scale = clamp(3.0, MIN_SCALE, MAX_SCALE);
+      const scale = clamp(Math.min(cw / CANVAS_SIZE, ch / CANVAS_SIZE), MIN_SCALE, MAX_SCALE);
       const t: Transform = {
         scale,
-        // Center the viewport on the middle of the canvas
-        x: cw / 2 - (CANVAS_SIZE / 2) * scale,
-        y: ch / 2 - (CANVAS_SIZE / 2) * scale,
+        x: (cw - CANVAS_SIZE * scale) / 2,
+        y: (ch - CANVAS_SIZE * scale) / 2,
       };
       applyTransform(t);
 

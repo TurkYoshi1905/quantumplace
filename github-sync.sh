@@ -77,8 +77,8 @@ if [ "$MODE" = "push" ]; then
     echo "  ✓ public/ kopyalandı."
   fi
 
-  # Yapılandırma dosyaları (vite.config.ts Vercel için sonraki adımda override edilir)
-  for f in index.html tsconfig.json tsconfig.app.json tailwind.config.ts postcss.config.js; do
+  # Yapılandırma dosyaları (tsconfig.json ve vite.config.ts Vercel için sonraki adımlarda override edilir)
+  for f in index.html tailwind.config.ts postcss.config.js; do
     if [ -f "$QUANTUM_DIR/$f" ]; then
       cp "$QUANTUM_DIR/$f" "$DEPLOY_TMP/$f"
       echo "  ✓ $f kopyalandı."
@@ -162,7 +162,7 @@ console.log('  ✓ package.json catalog: bağımlılıkları çözüldü, worksp
 NODESCRIPT
 
   echo ""
-  echo "▶ [5/6] Vercel-uyumlu vite.config.ts oluşturuluyor..."
+  echo "▶ [5/7] Vercel-uyumlu vite.config.ts oluşturuluyor..."
 
   cat > "$DEPLOY_TMP/vite.config.ts" << 'VITECONFIG'
 import { defineConfig } from "vite";
@@ -190,7 +190,40 @@ VITECONFIG
   echo "  ✓ vite.config.ts (Vercel uyumlu) oluşturuldu."
 
   echo ""
-  echo "▶ [6/6] Gönderilecek dosyalar kontrol ediliyor..."
+  echo "▶ [6/7] Vercel-uyumlu tsconfig.json oluşturuluyor (extends kaldırıldı)..."
+
+  cat > "$DEPLOY_TMP/tsconfig.json" << 'TSCONFIG'
+{
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "build", "dist", "**/*.test.ts"],
+  "compilerOptions": {
+    "noEmit": true,
+    "jsx": "preserve",
+    "target": "es2022",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "lib": ["esnext", "dom", "dom.iterable"],
+    "resolveJsonModule": true,
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "strictBindCallApply": true,
+    "alwaysStrict": true,
+    "skipLibCheck": true,
+    "types": ["node", "vite/client"],
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  }
+}
+TSCONFIG
+  echo "  ✓ tsconfig.json (standalone, extends yok) oluşturuldu."
+
+  echo ""
+  echo "▶ [7/7] Gönderilecek dosyalar kontrol ediliyor..."
   cd "$DEPLOY_TMP"
   git add -A
   CHANGED=$(git status --porcelain | wc -l)

@@ -6,9 +6,10 @@ interface HUDProps {
   displayCoord: PixelCoord;
   zoomDisplay: string;
   onOpenSettings: () => void;
+  onOpenInfo: () => void;
 }
 
-export function HUD({ displayCoord, zoomDisplay, onOpenSettings }: HUDProps) {
+export function HUD({ displayCoord, zoomDisplay, onOpenSettings, onOpenInfo }: HUDProps) {
   const { t } = useI18n();
 
   return (
@@ -28,7 +29,7 @@ export function HUD({ displayCoord, zoomDisplay, onOpenSettings }: HUDProps) {
       </div>
 
       {/* Top-right info button */}
-      <button className="hud-btn hud-btn--right" onClick={onOpenSettings} title={t("settings.about")}>
+      <button className="hud-btn hud-btn--right" onClick={onOpenInfo} title={t("settings.about")}>
         <HelpCircle size={16} />
       </button>
     </>
