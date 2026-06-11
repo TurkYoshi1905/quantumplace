@@ -25,7 +25,7 @@ MODE="${1:-push}"
 COMMIT_MSG="${2:-feat: QuantumPlace güncelleme}"
 BRANCH="main"
 WORKSPACE="/home/runner/workspace"
-QUANTUM_DIR="$WORKSPACE/artifacts/quantum-place"
+QUANTUM_DIR="$WORKSPACE/artifacts/quantumplace"
 DEPLOY_TMP="/tmp/quantumplace-deploy-$$"
 
 # GITHUB_PAT zorunlu
@@ -91,18 +91,30 @@ if [ "$MODE" = "push" ]; then
     echo "  ✓ vercel.json kopyalandı."
   fi
 
-  # github-sync.sh (bu script)
-  cp "$QUANTUM_DIR/github-sync.sh" "$DEPLOY_TMP/github-sync.sh"
+  # github-sync.sh (bu script — .migration-backup'tan kopyalanır)
+  cp "$WORKSPACE/.migration-backup/github-sync.sh" "$DEPLOY_TMP/github-sync.sh"
   echo "  ✓ github-sync.sh eklendi."
 
-  # README.md
-  if [ -f "$WORKSPACE/README.md" ]; then
+  # supabase_schema.sql
+  if [ -f "$QUANTUM_DIR/supabase_schema.sql" ]; then
+    cp "$QUANTUM_DIR/supabase_schema.sql" "$DEPLOY_TMP/supabase_schema.sql"
+    echo "  ✓ supabase_schema.sql eklendi."
+  fi
+
+  # README.md (.migration-backup'tan)
+  if [ -f "$WORKSPACE/.migration-backup/README.md" ]; then
+    cp "$WORKSPACE/.migration-backup/README.md" "$DEPLOY_TMP/README.md"
+    echo "  ✓ README.md eklendi."
+  elif [ -f "$WORKSPACE/README.md" ]; then
     cp "$WORKSPACE/README.md" "$DEPLOY_TMP/README.md"
     echo "  ✓ README.md eklendi."
   fi
 
-  # replit.md
-  if [ -f "$WORKSPACE/replit.md" ]; then
+  # replit.md (.migration-backup'tan)
+  if [ -f "$WORKSPACE/.migration-backup/replit.md" ]; then
+    cp "$WORKSPACE/.migration-backup/replit.md" "$DEPLOY_TMP/replit.md"
+    echo "  ✓ replit.md eklendi."
+  elif [ -f "$WORKSPACE/replit.md" ]; then
     cp "$WORKSPACE/replit.md" "$DEPLOY_TMP/replit.md"
     echo "  ✓ replit.md eklendi."
   fi
@@ -129,7 +141,7 @@ for (const line of yaml.split('\n')) {
 }
 
 // Artifact package.json oku
-const pkg = JSON.parse(fs.readFileSync('/home/runner/workspace/artifacts/quantum-place/package.json', 'utf8'));
+const pkg = JSON.parse(fs.readFileSync('/home/runner/workspace/artifacts/quantumplace/package.json', 'utf8'));
 
 // Kaldırılacak paketler (Replit-özel veya workspace-özel)
 const replit_only = new Set([
