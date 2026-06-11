@@ -1,5 +1,5 @@
 import { useEffect, useRef, useCallback } from "react";
-import { supabase, type PixelRecord } from "../lib/supabase";
+import { supabase, supabaseReady, type PixelRecord } from "../lib/supabase";
 import type { PixelCoord } from "../types";
 
 interface PixelMeta {
@@ -24,6 +24,8 @@ export function useSupabasePixels({
   // Load initial canvas from Supabase
   const loadInitialPixels = useCallback(
     async (paintFn: (x: number, y: number, color: string) => void) => {
+      if (!supabaseReady) return;
+
       const { data, error } = await supabase
         .from("pixels")
         .select("x, y, color, username, placed_at");
@@ -49,6 +51,8 @@ export function useSupabasePixels({
 
   // Subscribe to realtime pixel changes
   useEffect(() => {
+    if (!supabaseReady) return;
+
     const channel = supabase
       .channel("pixels-realtime")
       .on(
@@ -78,15 +82,11 @@ export function useSupabasePixels({
   // Place a pixel → upsert to Supabase
   const placePixel = useCallback(
     async (coord: PixelCoord, color: string) => {
+      if (!supabaseReady) return;
+
       const placed_at = new Date().toISOString();
       const { error } = await supabase.from("pixels").upsert(
-        {
-          x: coord.x,
-          y: coord.y,
-          color,
-          username,
-          placed_at,
-        },
+        { x: coord.x, y: coord.y, color, username, placed_at },
         { onConflict: "x,y" }
       );
 

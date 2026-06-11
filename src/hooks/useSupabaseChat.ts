@@ -1,13 +1,18 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import { supabase, type ChatMessage } from "../lib/supabase";
+import { supabase, supabaseReady, type ChatMessage } from "../lib/supabase";
 
 export function useSupabaseChat(username: string) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(supabaseReady);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   // Load last 50 messages
   useEffect(() => {
+    if (!supabaseReady) {
+      setIsLoading(false);
+      return;
+    }
+
     const load = async () => {
       const { data, error } = await supabase
         .from("chat_messages")
@@ -25,6 +30,8 @@ export function useSupabaseChat(username: string) {
 
   // Realtime subscription
   useEffect(() => {
+    if (!supabaseReady) return;
+
     const channel = supabase
       .channel("chat-realtime")
       .on(
@@ -41,17 +48,18 @@ export function useSupabaseChat(username: string) {
       .subscribe();
 
     channelRef.current = channel;
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const sendMessage = useCallback(
     async (text: string) => {
-      const trimmed = text.trim();
-      if (!trimmed || !username) return;
+      if (!supabaseReady || !text.trim() || !username) return;
 
       const { error } = await supabase.from("chat_messages").insert({
         username,
-        message: trimmed,
+        message: text.trim(),
       });
 
       if (error) console.error("Chat send error:", error.message);
