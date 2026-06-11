@@ -7,8 +7,16 @@ interface ChatPanelProps {
   username: string;
 }
 
+function parseTimestamp(iso: string): Date {
+  let s = iso.replace(" ", "T");
+  if (!s.endsWith("Z") && !/[+\-]\d{2}:\d{2}$/.test(s) && !/[+\-]\d{4}$/.test(s)) {
+    s += "Z";
+  }
+  return new Date(s);
+}
+
 function formatDate(iso: string): string {
-  const d = new Date(iso);
+  const d = parseTimestamp(iso);
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }

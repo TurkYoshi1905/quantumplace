@@ -8,6 +8,7 @@ import { PixelTooltip } from "../components/PixelTooltip";
 import { useCanvas } from "../hooks/useCanvas";
 import { useCooldown } from "../hooks/useCooldown";
 import { useSupabasePixels } from "../hooks/useSupabasePixels";
+import { useSupabasePresence } from "../hooks/useSupabasePresence";
 import type { ColorHex, PixelCoord } from "../types";
 
 interface PixelMeta {
@@ -32,6 +33,7 @@ export default function Game({ onOpenSettings, username }: GameProps) {
 
   const canvasHook = useCanvas();
   const cooldown   = useCooldown();
+  const { onlineCount } = useSupabasePresence(username);
 
   const {
     selectedPixel, setSelectedPixel,
@@ -41,6 +43,7 @@ export default function Game({ onOpenSettings, username }: GameProps) {
   const { isOnCooldown, triggerCooldown } = cooldown;
   const displayCoord = cursorCoord ?? centerPixel;
 
+  // Stable callback refs — Supabase hooks'larına geçirilir, asla değişmez
   const handleMetaUpdate = useCallback((x: number, y: number, meta: PixelMeta) => {
     pixelMetaRef.current.set(`${x},${y}`, meta);
   }, []);
@@ -80,11 +83,14 @@ export default function Game({ onOpenSettings, username }: GameProps) {
     }
   }, [canvasHook.hoverPixel]);
 
-  // Wrap mousemove to also capture screen coords for tooltip positioning
+  // handleMouseMove ref — wrapper stabil; canvasHook.handleMouseMove her zaman güncel
+  const canvasMouseMoveRef = useRef(canvasHook.handleMouseMove);
+  canvasMouseMoveRef.current = canvasHook.handleMouseMove;
+
   const handleMouseMoveWrapper = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     setTooltipPos({ x: e.clientX, y: e.clientY });
-    canvasHook.handleMouseMove(e);
-  }, [canvasHook]);
+    canvasMouseMoveRef.current(e);
+  }, []); // ← boş deps: stabil fonksiyon, her render'da yeniden oluşturulmaz
 
   const handlePlace = async () => {
     if (isOnCooldown || !selectedPixel) return;
@@ -114,6 +120,7 @@ export default function Game({ onOpenSettings, username }: GameProps) {
         zoomDisplay={zoomDisplay}
         onOpenSettings={onOpenSettings}
         onOpenInfo={() => setInfoOpen(true)}
+        onlineCount={onlineCount}
       />
 
       <BottomPanel
@@ -128,10 +135,8 @@ export default function Game({ onOpenSettings, username }: GameProps) {
 
       <InfoModal open={infoOpen} onClose={() => setInfoOpen(false)} />
 
-      {/* Gerçek zamanlı sohbet — sol alt köşe */}
       <ChatPanel username={username} />
 
-      {/* Piksel hover tooltip — kimin, ne zaman */}
       <PixelTooltip
         pixel={tooltipPixel}
         meta={tooltipMeta}

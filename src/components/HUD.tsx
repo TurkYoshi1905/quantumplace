@@ -1,4 +1,4 @@
-import { Menu, HelpCircle } from "lucide-react";
+import { Menu, HelpCircle, Users } from "lucide-react";
 import { useI18n } from "../i18n/context";
 import type { PixelCoord } from "../types";
 
@@ -7,9 +7,10 @@ interface HUDProps {
   zoomDisplay: string;
   onOpenSettings: () => void;
   onOpenInfo: () => void;
+  onlineCount?: number;
 }
 
-export function HUD({ displayCoord, zoomDisplay, onOpenSettings, onOpenInfo }: HUDProps) {
+export function HUD({ displayCoord, zoomDisplay, onOpenSettings, onOpenInfo, onlineCount = 0 }: HUDProps) {
   const { t } = useI18n();
 
   return (
@@ -27,6 +28,15 @@ export function HUD({ displayCoord, zoomDisplay, onOpenSettings, onOpenInfo }: H
         <span className="hud-divider" />
         <span className="hud-zoom">{zoomDisplay}</span>
       </div>
+
+      {/* Online player count — top center-right */}
+      {onlineCount > 0 && (
+        <div className="hud-online-pill">
+          <div className="hud-online-dot" />
+          <Users size={11} />
+          <span className="hud-online-count">{onlineCount}</span>
+        </div>
+      )}
 
       {/* Top-right info button */}
       <button className="hud-btn hud-btn--right" onClick={onOpenInfo} title={t("settings.about")}>

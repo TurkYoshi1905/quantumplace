@@ -13,8 +13,23 @@ interface PixelTooltipProps {
   screenY: number;
 }
 
+/**
+ * Supabase timestamptz bazen timezone bilgisi olmadan döner (ör: "2026-06-11T09:09:00").
+ * Bu durumda JS onu local zaman olarak yorumlar ve saat yanlış görünür.
+ * Çözüm: timezone bilgisi yoksa 'Z' ekleyerek UTC olarak işaretle,
+ * sonra getHours() ile yerel saate çevir.
+ */
+function parseTimestamp(iso: string): Date {
+  let s = iso.replace(" ", "T"); // PostgreSQL "2026-06-11 09:09:00" formatı
+  // Eğer timezone bilgisi yoksa UTC'ye zorla
+  if (!s.endsWith("Z") && !/[+\-]\d{2}:\d{2}$/.test(s) && !/[+\-]\d{4}$/.test(s)) {
+    s += "Z";
+  }
+  return new Date(s);
+}
+
 function formatDate(iso: string): string {
-  const d = new Date(iso);
+  const d = parseTimestamp(iso);
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
@@ -22,8 +37,9 @@ function formatDate(iso: string): string {
 export function PixelTooltip({ pixel, meta, screenX, screenY }: PixelTooltipProps) {
   if (!pixel || !meta) return null;
 
-  const left = screenX + 14;
-  const top = screenY - 8;
+  // Tooltip ekranın sağından taşmasın
+  const left = Math.min(screenX + 14, window.innerWidth - 230);
+  const top  = Math.max(screenY - 8, 8);
 
   return (
     <div

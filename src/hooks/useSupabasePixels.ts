@@ -19,9 +19,14 @@ export function useSupabasePixels({
   onRemotePixel,
   onMetaUpdate,
 }: UseSupabasePixelsOptions) {
-  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  // ── Callback refs: subscription açıldıktan sonra deps değişse de
+  // kanal yeniden oluşturulmaz; her mouse move'da subscription restart olmaz.
+  const onRemotePixelRef = useRef(onRemotePixel);
+  const onMetaUpdateRef  = useRef(onMetaUpdate);
+  useEffect(() => { onRemotePixelRef.current = onRemotePixel; }, [onRemotePixel]);
+  useEffect(() => { onMetaUpdateRef.current  = onMetaUpdate;  }, [onMetaUpdate]);
 
-  // Load initial canvas from Supabase
+  // Load initial canvas from Supabase — called once after canvas is ready
   const loadInitialPixels = useCallback(
     async (paintFn: (x: number, y: number, color: string) => void) => {
       if (!supabaseReady) return;
@@ -38,7 +43,7 @@ export function useSupabasePixels({
       if (data) {
         for (const row of data as PixelRecord[]) {
           paintFn(row.x, row.y, row.color);
-          onMetaUpdate(row.x, row.y, {
+          onMetaUpdateRef.current(row.x, row.y, {
             username: row.username,
             placed_at: row.placed_at,
             color: row.color,
@@ -46,10 +51,10 @@ export function useSupabasePixels({
         }
       }
     },
-    [onMetaUpdate]
+    [] // Stable — refs used inside, no external deps needed
   );
 
-  // Subscribe to realtime pixel changes
+  // Realtime subscription — empty deps → channel created exactly ONCE
   useEffect(() => {
     if (!supabaseReady) return;
 
@@ -61,8 +66,8 @@ export function useSupabasePixels({
         (payload) => {
           if (payload.eventType === "INSERT" || payload.eventType === "UPDATE") {
             const row = payload.new as PixelRecord;
-            onRemotePixel(row.x, row.y, row.color);
-            onMetaUpdate(row.x, row.y, {
+            onRemotePixelRef.current(row.x, row.y, row.color);
+            onMetaUpdateRef.current(row.x, row.y, {
               username: row.username,
               placed_at: row.placed_at,
               color: row.color,
@@ -72,12 +77,10 @@ export function useSupabasePixels({
       )
       .subscribe();
 
-    channelRef.current = channel;
-
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [onRemotePixel, onMetaUpdate]);
+  }, []); // ← boş deps: subscription bir kez açılır, asla yeniden oluşturulmaz
 
   // Place a pixel → upsert to Supabase
   const placePixel = useCallback(

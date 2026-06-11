@@ -4,31 +4,23 @@ import { supabase, supabaseReady, type ChatMessage } from "../lib/supabase";
 export function useSupabaseChat(username: string) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(supabaseReady);
-  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
-  // Load last 50 messages
+  // Load last 50 messages once
   useEffect(() => {
-    if (!supabaseReady) {
-      setIsLoading(false);
-      return;
-    }
+    if (!supabaseReady) { setIsLoading(false); return; }
 
-    const load = async () => {
-      const { data, error } = await supabase
-        .from("chat_messages")
-        .select("id, username, message, created_at")
-        .order("created_at", { ascending: false })
-        .limit(50);
-
-      if (!error && data) {
-        setMessages((data as ChatMessage[]).reverse());
-      }
-      setIsLoading(false);
-    };
-    load();
+    supabase
+      .from("chat_messages")
+      .select("id, username, message, created_at")
+      .order("created_at", { ascending: false })
+      .limit(50)
+      .then(({ data, error }) => {
+        if (!error && data) setMessages((data as ChatMessage[]).reverse());
+        setIsLoading(false);
+      });
   }, []);
 
-  // Realtime subscription
+  // Realtime subscription — empty deps → opened exactly ONCE, no restarts
   useEffect(() => {
     if (!supabaseReady) return;
 
@@ -47,21 +39,17 @@ export function useSupabaseChat(username: string) {
       )
       .subscribe();
 
-    channelRef.current = channel;
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, []); // ← boş deps: bir kez açılır
 
   const sendMessage = useCallback(
     async (text: string) => {
       if (!supabaseReady || !text.trim() || !username) return;
-
-      const { error } = await supabase.from("chat_messages").insert({
-        username,
-        message: text.trim(),
-      });
-
+      const { error } = await supabase
+        .from("chat_messages")
+        .insert({ username, message: text.trim() });
       if (error) console.error("Chat send error:", error.message);
     },
     [username]
